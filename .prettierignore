@@ -1,0 +1,9 @@
+
+#Playwright Specific
+node_modules/
+test-results/
+playwright-report
+Readme.md
+
+# IDE - VSCode
+.vs/*

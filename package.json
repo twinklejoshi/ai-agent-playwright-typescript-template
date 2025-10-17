@@ -1,0 +1,65 @@
+{
+	"name": "playwright-typescript-template",
+	"version": "1.0.0",
+	"description": "��#\u0000 \u0000p\u0000l\u0000a\u0000y\u0000w\u0000r\u0000i\u0000g\u0000h\u0000t\u0000-\u0000t\u0000y\u0000p\u0000e\u0000s\u0000c\u0000r\u0000i\u0000p\u0000t\u0000-\u0000t\u0000e\u0000m\u0000p\u0000l\u0000a\u0000t\u0000e\u0000\r\u0000 \u0000",
+	"main": "index.js",
+	"scripts": {
+		"setup": "npm ci && npx playwright install",
+		"prettier": "npx prettier --check .",
+		"prettier:fix": "npx prettier --write .",
+		"eslint": "npx eslint .",
+		"eslint:fix": "npx eslint . --fix",
+		"test": "npx playwright test",
+		"test:local": "npx cross-env NODE_ENV=local playwright test",
+		"test:dev": "npx cross-env NODE_ENV=dev playwright test",
+		"test:headed": "npx playwright test --headed",
+		"test:ui": "npx playwright test --ui",
+		"test:debug": "npx playwright test --debug",
+		"test:trace": "npx playwright test --trace",
+		"test:custom": "ts-node utils/run-custom-tests.ts",
+		"test:report:playwright": "playwright show-report reports/playwright-report",
+		"test:report:custom": "open-cli reports/index.html",
+		"prepare": "husky && husky install"
+	},
+	"lint-staged": {
+		"*.{js,jsx,ts,tsx,mjs}": [
+			"prettier --write",
+			"eslint --fix"
+		]
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/twinklejoshi/ai-agent-playwright-typescript-template.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/twinklejoshi/ai-agent-playwright-typescript-template/issues"
+	},
+	"homepage": "https://github.com/twinklejoshi/ai-agent-playwright-typescript-template#readme",
+	"devDependencies": {
+		"@eslint/js": "^9.24.0",
+		"@playwright/test": "^1.56.0",
+		"@types/node": "^24.0.3",
+		"@typescript-eslint/eslint-plugin": "^8.29.1",
+		"@typescript-eslint/parser": "^8.29.1",
+		"eslint": "^9.24.0",
+		"eslint-config-prettier": "^10.1.1",
+		"eslint-plugin-prettier": "^5.2.6",
+		"globals": "^16.0.0",
+		"husky": "^8.0.0",
+		"lint-staged": "^16.1.0",
+		"open-cli": "^8.0.0",
+		"prettier": "^3.5.3",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.8.3",
+		"typescript-eslint": "^8.29.1"
+	},
+	"dependencies": {
+		"axios": "^1.9.0",
+		"cross-env": "^7.0.3",
+		"dotenv": "^16.4.7",
+		"inquirer": "^12.5.2"
+	}
+}
