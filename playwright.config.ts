@@ -6,7 +6,7 @@ import { loadEnv } from "@utils/env-loader";
  * https://github.com/motdotla/dotenv
  */
 
-loadEnv(process.env.NODE_ENV || "local");
+loadEnv(process.env.NODE_ENV || "example");
 
 /**
  * See https://playwright.dev/docs/test-configuration.

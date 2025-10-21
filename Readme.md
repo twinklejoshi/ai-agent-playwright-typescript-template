@@ -1,23 +1,91 @@
-# Playwright Typescript Template
+<div align="center">
 
-This README provides step-by-step instructions for setting up, configuring, and running the project using Playwright and other development tools such as Prettier, ESLint, and TypeScript.
+# AI Agent Playwright + TypeScript Automation Framework Template
 
-Playwright documentation: https://playwright.dev/docs/intro
+Production-ready Playwright test automation starter for teams and startups: strict TypeScript, Page Object Model, environment management, interactive runner, custom HTML reporting (with optional JIRA integration), quality tooling, CI/CD patterns, and agentic (MCP-ready) extensibility.
 
-## **Index**
+[Playwright Docs](https://playwright.dev/docs/intro) · [TypeScript](https://www.typescriptlang.org/) · [ESLint](https://eslint.org/) · [Prettier](https://prettier.io/) · [Husky](https://typicode.github.io/husky/)
 
-1. [Pre-requisites](#pre-requisites)
-2. [Setting Up the Project](#setting-up-the-project)
-3. [Adding and Configuring Environments](#adding-and-configuring-environments)
-4. [Project Folder Structure](#project-folder-structure)
-5. [Running Tests](#running-tests)
-6. [Recording and Playing with Playwright Test Generator](#recording-and-playing-with-playwright-test-generator)
-7. [Playwright extension VS code](#playwright-extension-vs-code)
-8. [Code Formatting with Prettier](#code-formatting-with-prettier)
-9. [Linting with ESLint](#linting-with-eslint)
-10. [TypeScript Configuration (`tsconfig.json`)](#typescript-configuration-tsconfigjson)
+</div>
 
-## Pre-requisites
+---
+
+## Table of Contents
+
+1. [Why This Framework](#why-this-framework)
+2. [Features Overview](#features-overview)
+3. [Tech Stack](#tech-stack)
+4. [Prerequisites](#prerequisites)
+5. [Quick Start](#quick-start)
+6. [Project Structure](#project-structure)
+7. [Environments & Configuration](#environments--configuration)
+8. [Running Tests (Scripts)](#running-tests-scripts)
+9. [Interactive Custom Test Runner](#interactive-custom-test-runner)
+10. [Tagging Strategy](#tagging-strategy)
+11. [Page Object Model (POM)](#page-object-model-pom)
+12. [Configuration Hub (`configuration.ts`)](#configuration-hub-configurationts)
+13. [Custom HTML Reporting](#custom-html-reporting)
+14. [Logging](#logging)
+15. [Code Quality: Prettier / ESLint / Husky](#code-quality-prettier--eslint--husky)
+16. [TypeScript Configuration](#typescript-configuration)
+17. [CI/CD Jenkins Pipeline](#cicd-jenkins-pipeline)
+18. [Writing & Extending Tests](#writing--extending-tests)
+19. [AI Agent & Playwright MCP Integration](#ai-agent--playwright-mcp-integration)
+20. [Troubleshooting](#troubleshooting)
+21. [Security & Secrets](#security--secrets)
+22. [License](#license)
+
+---
+
+## Why This Framework
+
+Instead of spending days wiring up Playwright from scratch, this template gives you:
+
+- Opinionated yet flexible structure - Follows POM design pattern
+- Unified configuration & environment variable loading
+- A powerful interactive test runner that composes Playwright commands for you
+- Rich custom HTML report with JIRA bug creation links & embedded artifacts
+- Tag‑driven selective execution (regression, smoke, customer, internal)
+- First‑class logging, helper utilities, and mock data
+- CI pipeline (Jenkins) example using official Playwright docker image
+
+---
+
+## Features Overview
+
+| Area                  | Capability                                                                                 |
+| --------------------- | ------------------------------------------------------------------------------------------ |
+| Test Types            | UI, API (E2E slot reserved for future)                                                     |
+| Architecture          | Page Object Model for UI/API pages                                                         |
+| Environment Handling  | `.env` per environment via `dotenv` + `loadEnv()`                                          |
+| Single Config Hub | `utils/configuration.ts` serves as the central config hub that defines environments, browsers, test types, tags, run modes, and JIRA constants to enable custom test execution and seamless JIRA–Jenkins integration.|
+| Tagging               | Regression, Smoke, Customer, Internal (via `TAGS` enum)                                    |
+| Custom Runner         | Interactive CLI: choose env, browser(s), test type(s), tags, mode (headed / debug / ui) to enable dynamic test execution through interactive prompts.    |
+| Reporting             | Playwright built‑in HTML + Custom consolidated HTML (donut chart, steps, JIRA integration) |
+| Jenkins dashboard        | Dashboard for details on test execution, integrated with playwright report for more details and `Create bug` option to directly create jira bug with auto-populated details including link to screenshot, videos and traces in the configured project |
+| JIRA Hooks            | One‑click “Create Bug” buttons (IDs configurable in `configuration.ts`)   for Jenkins dashboard                  |
+| Logging               | File + console logger (`Logger` class) writes to `logs/automation.log`                     |
+| CI                    | Jenkins pipeline with Dockerized Playwright execution & HTML publish  + Github actions for code-quality check and running tests                     |
+| Code Quality          | Prettier, ESLint, TypeScript strict, Husky + lint‑staged on commit                         |
+| Trace Artifacts       | Screenshots, videos & traces retained on failure                                           |
+| Agentic Ready | Integrated Playwright MCP and Playwright agents |
+
+
+---
+
+## Tech Stack
+
+- Playwright Test (`@playwright/test`)
+- TypeScript (Strict mode)
+- Node.js (LTS recommended)
+- Dotenv for environment variable loading
+- Inquirer for interactive CLI test runner
+- Prettier + ESLint + Husky + lint‑staged for quality gates
+- Jenkins (example pipeline) / HTML publisher plugin
+
+---
+
+## Prerequisites
 
 Before you start, ensure the following:
 
@@ -25,119 +93,248 @@ Before you start, ensure the following:
 2. **Install Git**
 3. **Install Node.js**
    - Download and install Node.js from [here](https://nodejs.org/en/download).
-
-## Setting Up the Project
-
-1. **Clone the repo**
-  - Clone repository locally:
-    ```bash
-    git clone https://github.com/twinklejoshi/ai-agent-playwright-typescript-template.git
-    ```
-
-2. **Set up the project by installing dependencies**
-  - Navigate to the project directory and run:
-     ```bash
-     npm run setup
-     ```
-
-## Adding and Configuring Environments
-
-To keep sensitive data secure and easily configurable, we use environment file(s) to manage environment-specific variables such as API keys, URLs, or credentials. Ensure you create and configure this file before running the tests.
-
-### This project supports multiple environments (e.g., local, dev, qa) for flexible configuration. Here’s how to add and configure them:
-
-  **Steps to Add Environments**
-
-  1. **Create Environment Files**:
-
-      - Create `environments` folder in the project root.
-      - Add environment-specific `.env` files to environments, such as:
-        - `local.env`
-        - `dev.env`
-        - `qa.env`
-
-  2. **Configure Environment Variables**:
-      - Define the variables required by your project in each `.env` file.
-      - Example content for `local.env`:
-        ```env
-        environment=local
-        
-        USERNAME=test_user
-        PASSWORD=test_pass
-        URL=https://local.company.com
-        ```
-      - Example content for `dev.env`:
-        ```env
-        environment=dev
-        
-        USERNAME=test_user
-        PASSWORD=test_pass
-        URL=https://dev.company.com
-        ```
-      - Example content for `qa.env`:
-        ```env
-        environment=qa
-        
-        USERNAME=test_user
-        PASSWORD=test_pass
-        URL=https://qa.company.com
-        ```
-      ```bash
-        environments/
-        ├── local.env          # Configuration for the local environment
-        ├── dev.env            # Configuration for the development environment
-        └── qa.env             # Configuration for the QA environment
-      ```
-
-  3. **Configuring Environments in `playwright.config.ts`**
-      - The `playwright.config.ts` file is set up to load environment-specific configurations based on the `NODE_ENV` variable.
-
-  4. `environments` folder currently has `example.env` file for the demo puposes
-
-### How It Works:
-
-- The environment is determined by the value of `NODE_ENV`.
-- Based on the selected environment, the corresponding `.env` file is loaded, and its variables are made available in the runtime environment.
-- If no environment is specified, the `local` environment is used by default.
-
-### How to load environment variables in the project
-- loadEnv(env: string): Loads environment variables from the corresponding .env file based on the provided environment (local by default).
-
-### Details of Environment Files
-1. Purpose: Environment files (`.env`) store environment-specific settings securely and allow you to switch between configurations easily.
-2. Examples of Common Content in Environment Files:
-    - **URLs**: Base URLs for services or APIs (`BASE_URL`).
-    - **Keys**: API keys or secrets required for authentication (`API_KEY`).
-    - **Timeouts**: Configuration for network request timeouts (`TIMEOUT`).
-    - **Custom Variables**: Any other key-value pairs specific to the project requirements.
-    - **Credentials**: Credentials required for login (`USER_NAME`, `USER_PWD`)
-3. Environment variables can be accessed anywhere into the project through `process.env.{variable_name_as_per_env_file}`.
-
-## Project Folder Structure
-
-This section provides an overview of the `src` directory's structure, explains the **Page Object Model (POM)** design pattern, and outlines what each folder contains.
-
-### **Folder Structure**
-
-The `src` directory is organized as follows:
-
+4. **Verify:**
 ```bash
-src
-├── pages
-│   │── ui             # Specific UI page objects that contains classes for UI components (e.g., LoginPage, DashboardPage)
-│   │── api            # Specific API page objects that contains classes or modules for interacting with API endpoints
-├── shared
-│   ├── mock-data      # Shared test data
-│   ├── types          # Shared types
-│   ├── utils          # Shared helper functions, configurations, or utilities
-├── tests
-│   ├── ui # UI test scripts and fixtures for validating components and interactions
-|   ├── e2e    # End-to-end test scripts and fixtures for validating user journeys across systems
-│   ├── api  # API test scripts and fixtures for validating responses and workflows
+git --version
+node -v
+npm -v
+```
+Optional: VS Code + Playwright extension.
 
+---
+
+## Quick Start
+
+> Windows PowerShell examples (`powershell.exe`)
+
+1. Clone:
+
+```powershell
+git clone https://github.com/twinklejoshi/ai-agent-playwright-typescript-template.git
+cd ai-agent-playwright-typescript-template
 ```
 
-### **Page Object Model (POM)**
+2. Install & provision browsers:
+
+```powershell
+npm run setup
+```
+
+3. (Optional) Create environment files (see below) then run tests:
+
+```powershell
+npm run test            # All tests headless, default env=example
+npm run test:local      # Explicit local env
+```
+
+4. Launch interactive runner:
+
+```powershell
+npm run test:custom
+```
+
+5. View Playwright report after a run:
+
+```powershell
+npm run test:report:playwright
+```
+
+6. View custom report:
+
+```powershell
+npm run test:report:custom
+```
+
+---
+
+## Project Structure
+
+```
+├── eslint.config.mjs
+├── Jenkinsfile
+├── package.json
+├── playwright.config.ts
+├── tsconfig.json
+├── environments/
+│   ├── local.env  (add your own)
+│   ├── dev.env    (add your own)
+│   ├── qa.env     (add your own)
+│   └── example.env (sample)
+├── utils/                # Cross-cutting utilities outside src
+│   ├── configuration.ts  # Central config file for all config (TAGS, browsers, Jira, etc.) in the project 
+│   ├── custom-reporter.ts # Custom HTML report generator - generate a simple report and Jenkins dashboard
+│   ├── env-loader.ts #Environment loading logic
+│   └── run-custom-tests.ts # CLI interactive runner
+└── src/
+    ├── pages/
+    │   ├── ui/           # UI POM classes
+    │   └── api/          # API abstraction classes
+    ├── shared/
+    │   ├── mock-data/    # Test data (e.g., todo items, user prototypes)
+    │   ├── types/        # Reusable TS types
+    │   └── utils/        # Helpers (logger, local storage checks)
+    └── tests/
+        ├── ui/           # UI specs & fixtures
+        └── api/          # API specs
+        └── e2e/          # (Create for end-to-end flows)
+```
+
+> Note: Imports like `@utils/configuration` reference root `utils/`. If you add more aliases, update `tsconfig.json` paths accordingly (see [TypeScript Configuration](#typescript-configuration)).
+
+---
+
+## Environments & Configuration
+
+Located under `environments/`. Create one file per target: `local.env`, `dev.env`, `qa.env` (an `example.env` is provided as a fallback reference). Loader implementation (`utils/env-loader.ts`):
+```ts
+export const loadEnv = (env: string = 'example') => { /* resolves environments/<env>.env via dotenv */ };
+```
+`playwright.config.ts` calls:
+```ts
+loadEnv(process.env.NODE_ENV || 'example');
+```
+Usage pattern:
+```bash
+npx cross-env NODE_ENV=local playwright test --grep "@smoke"
+```
+Sample `local.env`:
+```env
+environment=local
+BASE_URL=https://local.example.com
+USERNAME=test_user
+PASSWORD=test_pass
+```
+Access with `process.env.BASE_URL`.
+
+If a specified file is missing, adjust the default parameter or create the file to avoid silent misconfiguration.
+
+### Adding New Variables
+
+1. Add to each `<env>.env`
+2. Reference anywhere via `process.env.MY_VAR`.
+3. For CI Jenkins pipeline, set/inject using credentials bindings (see Jenkinsfile).
+
+---
+
+## Running Tests (Scripts)
+
+| Script                            | Purpose                          |
+| --------------------------------- | -------------------------------- |
+| `npm run test`                    | All tests headless (default env) |
+| `npm run test:local` / `test:dev` | Force specific environment       |
+| `npm run test:headed`             | Run in headed browsers           |
+| `npm run test:ui`                 | Launch Playwright UI runner      |
+| `npm run test:debug`              | Debug mode (slow-mo inspector)   |
+| `npm run test:trace`              | Enables trace collection         |
+| `npm run test:custom`             | Interactive multi-select runner  |
+| `npm run test:report:playwright`  | Open last Playwright HTML report |
+| `npm run test:report:custom`      | Open custom consolidated report  |
+
+Artifacts (screenshots, videos, traces) retained only on test failure (`retain-on-failure`).
+
+---
+
+## Interactive Custom Test Runner
+
+
+```bash
+npm run test:custom
+```
+
+The `test:custom` command runs the `run-custom-tests.ts` script. The `run-custom-tests.ts` script is an interactive tool for flexible test execution. It allows you to select the environment, browser, test type, test group and test mode. Based on your choices, it dynamically constructs and runs the appropriate Playwright command, simplifying custom test runs without manual configuration changes.
+
+**Usage Example**
+
+To run the custom test flow:
+
+1. Execute the script:
+   ```bash
+   npm run test:custom
+   ```
+2. Follow the prompts to select your environment, browser, test type, test group and test mode.
+3. The script will execute the selected tests and display the output.
+
+For more details on how the script works, refer to [Custom Test Script: `run-custom-tests.ts`](#custom-test-script-run-custom-testsmjs).
+
+
+### **Custom Test Script: `run-custom-tests.ts`**
+
+The `run-custom-tests.ts` script enables dynamic test execution through interactive prompts. It allows users to select the following options:
+
+1. **Environment**:
+   - Select an environment:
+     - `Local`
+     - `Dev`
+     - `QA`
+
+2. **Browser**:
+   - Select the browser:
+     - `Chromium`
+     - `Firefox`
+     - `WebKit`
+
+3. **Test Type**:
+   - Specify the type of tests:
+     - `API`
+     - `UI`
+     - `E2E`
+
+4. **Test Group**:
+   - Filter tests by tag:
+     - `Regression`
+     - `Smoke`
+
+5. **Test Mode**:
+   - Filter tests by tag:
+     - `Headless`
+     - `UI`
+
+**Sample Command Generated by Script**
+If the user selects:
+
+- Environment: `QA`
+- Browser: `Chromium`
+- Test Type: `UI`
+- Test Group: `Regression`
+- TestMode: ` Default => Headless`
+
+The generated command will look like:
+
+```bash
+npx cross-env NODE_ENV=local playwright test --project=chromium .src/tests/ui --grep "@regression"
+```
+
+The script dynamically builds this command, ensuring flexible and efficient test execution.
+
+
+---
+
+## Tagging Strategy
+
+Tags are defined in `utils/configuration.ts` enum `TAGS`:
+
+```typescript
+export enum TAGS {
+	REGRESSION = "@regression",
+	SMOKE = "@smoke",
+	CUSTOMER = "@customer",
+	INTERNAL = "@internal",
+}
+```
+
+Apply tags per test via metadata:
+
+```typescript
+test("create todo", { tag: [TAGS.REGRESSION, TAGS.CUSTOMER] }, async ({ ... }) => { /* ... */ });
+```
+
+Filter execution using `--grep "@regression"` or combined with OR using pipes from custom runner.
+
+Add new tags: extend `TAGS`, then insert into `TEST_GROUPS` for interactive selection.
+
+---
+
+## Page Object Model (POM)
 
 The **Page Object Model (POM)** is utilized for organizing UI, API, and end-to-end test files. Each application page or endpoint is represented by a class or module, enabling a clean separation of concerns and improving maintainability.
 
@@ -241,367 +438,348 @@ The **Page Object Model (POM)** is utilized for organizing UI, API, and end-to-e
   - Example: `expect(page.url()).toBe('https://example.com/dashboard');`
 - **Setup and Teardown**: Initialization and cleanup code to prepare the test environment. This can be moved to fixtures folder. Fixtures encapsulates setup/teardown, are reusable beween test files and can help with grouping
 
-## Running Tests
-
-This section provides information about various test scripts defined in `package.json`.
-
-### **Test Scripts**
-
-**Here are the defined test commands and their purposes:**
-
-| Command                 | Description                                                                                          |
-|-------------------------|------------------------------------------------------------------------------------------------------|
-| `npm run test`          | Runs all Playwright tests in headless mode.                                                         |
-| `npm run test:local`    | Runs all Playwright tests using local environment variables in headless mode.                                                         |
-| `npm run test:dev`    | Runs all Playwright tests using dev environment variables in headless mode.                                                         |
-| `npm run test:headed`  | Runs all Playwright tests in headed mode.                                                         |
-| `npm run test:custom`   | Launches an interactive prompt to customize and execute test runs based on environment, browser, test mode, test type, and test group. |
-| `npm run test:ui`       | Opens the Playwright Test Runner UI for interactive test execution and debugging.                    |
-| `npm run test:report:playwright`   | Opens the latest Playwright test execution HTML report.                                             |
-| `npm run test:report:custom`   | Opens the latest test execution custom HTML report.                                             |
-| `npm run test:debug`    | Runs Playwright tests in debug mode for step-by-step troubleshooting.                               |
-| `npm run test:trace`    | Executes Playwright tests with tracing enabled for performance analysis and debugging.              |
 ---
 
-**Interactive Test Execution: Custom Tests**
+## Configuration Hub (`configuration.ts`)
+### Purpose
+`utils/configuration.ts` is the canonical source for selectable dimensions of a test run (environment, browser, test type, grouping/tag, execution mode) and external integration constants (JIRA). Centralization avoids script divergence and enables dynamic CLI building.
 
-```bash
-npm run test:custom
+### Exposed Structures
+| Constant | Shape | Usage |
+|----------|-------|-------|
+| `TAGS` | `enum` | Standard tag values used directly in test metadata (`tag:` field). |
+| `ENVIRONMENTS` | `Array<{ name; value }>` | CLI prompt options -> mapped to `NODE_ENV`. |
+| `BROWSERS` | `Array<{ name; value }>` | Translated to repeated `--project=<browser>` flags. |
+| `TEST_TYPES` | `Array<{ name; value }>` | Builds path segments `.src/tests/<type>` for selective directory runs. |
+| `TEST_GROUPS` | `Array<{ name; value }>` | Values come from `TAGS` (used to assemble `--grep`). |
+| `MODES` | `Array<{ name; value }>` | Appended to the final command (empty string = default headless). |
+| `JIRA_*` constants | Numeric/string placeholders | Consumed by custom reporter to construct create-issue URLs. |
+
+### How the Runner Uses It
+In `run-custom-tests.ts` answers from `inquirer` map directly:
+```ts
+const browserScriptParam = answers.selectedBrowser.map(b => `--project=${b}`).join(' ');
+const testTypeParams = answers.selectedTestType.map(t => `.src/tests/${t}`).join(' ');
+const testGroupParam = answers.selectedTestGroup.join('|');
+```
+With these pieces the final command is assembled (mode appended last). This makes adding a new browser or tag a one-line change in `configuration.ts`.
+
+### Adding a New Dimension
+1. Add new enum/array entry (e.g., `TAGS.PERFORMANCE = '@performance'`).
+2. Extend `TEST_GROUPS` with a `{ name: 'Performance', value: TAGS.PERFORMANCE }` entry.
+3. Use tag in test titles or metadata.
+4. Rerun `npm run test:custom` – new option appears automatically.
+
+### JIRA Integration Details
+Reporter reads IDs/base URL to construct `CreateIssueDetails` link parameters. After providing real IDs:
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `JIRA_PROJECT_ID` | Project numeric ID | `10201` |
+| `JIRA_PROJECT_ISSUE_TYPE_ID` | Issue type ID (Bug, Task) | `10004` |
+| `JIRA_API_BASE_URL` | Base instance URL | `https://example.atlassian.net` |
+
+Failure rows display a "Create Bug" button which encodes test metadata (steps, attachments paths, error) into the generated link.
+
+### Environment + Path Alias Context
+Imports like `import { HomePage } from 'pages/ui';` rely on `tsconfig.json` path mapping (`"*": ["./src/*"]`) enabling shorthand module resolution. This reinforces portability in agent-based code generation (agents can infer domain boundaries from folder names).
+
+---
+
+## Custom HTML Reporting
+
+File: `utils/custom-reporter.ts` implements Playwright Reporter interface:
+
+- Collects test results, steps, durations, artifact paths
+- Normalizes failure states
+- Generates donut chart (Chart.js) summarizing pass/fail/skipped counts with inline percentages
+- Two report modes: simplified (local) & detailed (Jenkins) with JIRA action buttons
+- One-click “Create Bug” opens pre-filled JIRA issue creation screen via URL parameters (requires valid `JIRA_PROJECT_ID`, `JIRA_PROJECT_ISSUE_TYPE_ID`, `JIRA_API_BASE_URL` values in `configuration.ts`)
+- Provides quick link to underlying Playwright report per test (`detailsPath`)
+
+### Open Reports
+
+```powershell
+npm run test:report:playwright   # Native report
+npm run test:report:custom       # Custom report
 ```
 
-The `test:custom` command runs the `run-custom-tests.ts` script. The `run-custom-tests.ts` script is an interactive tool for flexible test execution. It allows you to select the environment, browser, test type, test group and test mode. Based on your choices, it dynamically constructs and runs the appropriate Playwright command, simplifying custom test runs without manual configuration changes.
+### Configure Output Paths
 
-**Usage Example**
+Set environment variables before run:
 
-To run the custom test flow:
-
-1. Execute the script:
-   ```bash
-   npm run test:custom
-   ```
-2. Follow the prompts to select your environment, browser, test type, test group and test mode.
-3. The script will execute the selected tests and display the output.
-
-For more details on how the script works, refer to [Custom Test Script: `run-custom-tests.ts`](#custom-test-script-run-custom-testsmjs).
-
-
-
-
-### **Custom Test Script: `run-custom-tests.ts`**
-
-The `run-custom-tests.ts` script enables dynamic test execution through interactive prompts. It allows users to select the following options:
-
-1. **Environment**:
-   - Select an environment:
-     - `Local`
-     - `Dev`
-     - `QA`
-
-2. **Browser**:
-   - Select the browser:
-     - `Chromium`
-     - `Firefox`
-     - `WebKit`
-
-3. **Test Type**:
-   - Specify the type of tests:
-     - `API`
-     - `UI`
-     - `E2E`
-
-4. **Test Group**:
-   - Filter tests by tag:
-     - `Regression`
-     - `Smoke`
-
-5. **Test Mode**:
-   - Filter tests by tag:
-     - `Headless`
-     - `UI`
-
-**Sample Command Generated by Script**
-If the user selects:
-
-- Environment: `QA`
-- Browser: `Chromium`
-- Test Type: `UI`
-- Test Group: `Regression`
-- TestMode: ` Default => Headless`
-
-The generated command will look like:
-
-```bash
-npx cross-env NODE_ENV=local playwright test --project=chromium .src/tests/ui --grep "@regression"
+```powershell
+$env:PLAYWRIGHT_HTML_REPORT_DIR = "reports/playwright-report";
+$env:CUSTOM_REPORT_DIR = "reports";
+npx playwright test
 ```
 
-The script dynamically builds this command, ensuring flexible and efficient test execution.
+### Jenkins Integration
 
+Pipeline passes Jenkins URLs to reporter so artifact links resolve inside Jenkins UI.
 
-## Recording and Playing with Playwright Test Generator
+---
 
-1. For test generator tutorial, refer [Test generator](https://playwright.dev/docs/codegen-intro).
-2. For more test generation capabilities tutorial, refer [Codegen](https://playwright.dev/docs/codegen)
+## Logging
 
-## Playwright extension VS code
+`src/shared/utils/custom-logger.ts` writes timestamped log lines to console and to `logs/automation.log`.
 
-The Playwright VS Code extension integrates Playwright's end-to-end testing capabilities directly into Visual Studio Code. It allows users to install Playwright, run tests with a single click, debug step-by-step, and view test results in the testing sidebar. The extension supports multiple browsers, configurations, and even GitHub Actions for CI/CD workflows. It also helps with generating tests, please refer [Playwright VS code](https://playwright.dev/docs/getting-started-vscode).
+Methods: `Logger.info | warn | error | debug`
 
-## Code Formatting with Prettier
+Use inside page objects or helpers for richer step context:
 
-Prettier is configured for consistent and readable code formatting across the project.
-
-### Prettier Configuration:
-
-- **`printWidth: 120`**: Wraps lines longer than 120 characters.
-- **`tabWidth: 2`**: Sets indentation to 2 spaces.
-- **`useTabs: true`**: Uses tabs for indentation.
-- **`semi: true`**: Adds semicolons at the end of statements.
-- **`trailingComma: "all"`**: Includes trailing commas where valid.
-- **`bracketSpacing: true`**: Adds spaces between brackets in object literals.
-- **`arrowParens: "always"`**: Requires parentheses for all arrow function parameters.
-
-### How to set up Prettier in VS code:
-
-1. Open Visual Studio Code.
-2. Go to the Extensions view (`Ctrl+Shift+X`).
-3. Search for "Prettier - Code formatter" and click **Install**.
-
-### Enable Format on Save:
-
-1. Go to **Settings in VS code > Text Editor > Formatting**.
-2. Check the **Format On Save** checkbox.
-
-## Linting with ESLint
-
-This section explains the ESLint configuration file (`eslint.config.mjs`) and how it integrates with TypeScript and Prettier to ensure consistent and maintainable code quality.
-
-
-### **Purpose**
-ESLint is a powerful static code analysis tool designed to detect potential errors, enforce coding standards, and maintain consistent formatting in JavaScript and TypeScript projects. By integrating custom and predefined rules, it ensures code quality, prevents bugs, and aligns with industry best practices. ESLint's flexibility allows for integration with tools like Prettier for code formatting while excluding unnecessary files to optimize performance. Overall, it simplifies collaboration within teams, enhances readability, and promotes maintainable and reliable codebases.
-
-The `eslint.config.mjs` file is configured to lint TypeScript files while incorporating Prettier for code formatting. It provides:
-- TypeScript-specific linting rules.
-- Integration with Prettier for consistent formatting.
-- Custom rules tailored for project requirements.
-- Exclusion of unnecessary directories to optimize linting.
-
-
-### **Configuration Breakdown**
-
-**Targeted Files**
-```Typescript
-files: ["**/*.ts"]
+```typescript
+Logger.info(`Creating user id=${id}`);
 ```
-Specifies that ESLint will target all TypeScript files (`.ts`) in the project.
+
+Rotate / archive logs by adding a post-run step or integrating with a log collector (future enhancement).
+
+---
 
 
+## Code Quality: Prettier / ESLint / Husky
 
-**Ignored Directories**
-```Typescript
-ignores: [
-    "node_modules/**",
-    "test-results/**",
-    "playwright-report/**",
-    "./vs/**"
-]
+### Prettier
+
+Configured with consistent formatting (printWidth 120, tabs enabled, trailing commas). Run:
+
+```powershell
+npm run prettier          # Check
+npm run prettier:fix      # Auto-fix
 ```
-Defines directories that ESLint will ignore during linting:
-- **`node_modules`**: Excludes dependencies.
-- **`test-results`**: Avoids linting test result files.
-- **`playwright-report`**: Excludes Playwright reports.
-- **`./vs`**: Ignores specific IDE-related directories.
 
+### ESLint
 
+TypeScript rules + Prettier integration; warnings for unused vars & `any`.
 
-**Language Options**
-```Typescript
-languageOptions: {
-    parser: tsparser,
-    sourceType: "module",
-    parserOptions: {
-        project: "./tsconfig.json",
-    },
-}
+```powershell
+npm run eslint
+npm run eslint:fix
 ```
-Specifies settings for TypeScript files:
-- **Parser**: `@typescript-eslint/parser` is used to process TypeScript syntax.
-- **Source Type**: Indicates that ECMAScript modules (`module`) are being used.
-- **Parser Options**: Points to `tsconfig.json` for TypeScript compilation settings, ensuring ESLint aligns with the TypeScript compiler.
 
+### Husky + lint-staged
 
+`npm run setup` triggers `prepare` script -> installs Husky. On commit, staged JS/TS files are auto formatted & linted (`lint-staged` config in `package.json`).
 
-**Plugins**
-```Typescript
-plugins: {
-    "@typescript-eslint": tseslint,
-    prettier: prettierPlugin,
-}
-```
-- **`@typescript-eslint`**: Provides TypeScript-specific linting rules.
-- **`prettier`**: Integrates Prettier with ESLint to enforce consistent formatting.
+---
 
+## TypeScript Configuration
 
+Strict settings in `tsconfig.json` ensure type safety. Key options:
 
-### **Rules**
-```Typescript
-rules: {
-    ...tseslint.configs.recommended.rules,
-    ...prettierConfig.rules,
-    "@typescript-eslint/no-unused-vars": "warn",
-    "no-console": "warn",
-    semi: ["error", "always"],
-    quotes: ["error", "double", { avoidEscape: true }],
-    "prettier/prettier": "error",
-}
-```
-Defines linting rules for TypeScript and Prettier:
-1. **TypeScript Rules**:
-   - Uses recommended rules from `@typescript-eslint`.
-   - Warns about unused variables: `"@typescript-eslint/no-unused-vars": "warn"`.
-2. **Custom Rules**:
-   - Warns against `console.log` and similar statements: `"no-console": "warn"`.
-   - Requires semicolons at the end of statements: `"semi": ["error", "always"]`.
-   - Enforces double quotes for strings, avoiding escape sequences: `"quotes": ["error", "double", { avoidEscape: true }]`.
-3. **Prettier Integration**:
-   - Enforces Prettier formatting rules: `"prettier/prettier": "error"`.
-
-
-
-### **Benefits of This Configuration**
-
-1. **TypeScript Integration**:
-   - Ensures TypeScript syntax and coding practices are followed.
-   - Aligns linting settings with the TypeScript compiler through `tsconfig.json`.
-
-2. **Prettier Integration**:
-   - Automates formatting with Prettier while resolving conflicts between ESLint and Prettier rules.
-
-3. **Customizable Rules**:
-   - Allows flexibility to tailor linting and formatting based on project-specific requirements.
-
-4. **Optimization**:
-   - Excludes unnecessary files and directories to streamline linting.
-
-For more details on ESLint configurations, check the [ESLint Documentation](https://eslint.org/docs/latest/).
-
-## TypeScript Configuration (`tsconfig.json`)
-
-The `tsconfig.json` file is a configuration file for the TypeScript compiler that specifies how the project should be compiled. Below is a detailed explanation of its settings:
-
-### **Compiler Options**
-
-**Target**
+- `strict: true`, `noImplicitAny: true`
+- `baseUrl: "./"` for simpler non-relative imports
+- Current path mapping: `"*": ["./src/*"]` (If you want alias like `@utils/*`, extend:
 
 ```json
-"target": "es2016"
+"paths": {"@utils/*": ["utils/*"], "@shared/*": ["src/shared/*"] }
 ```
 
-Specifies the version of Typescript to which TypeScript code will be compiled. `es2016` ensures compatibility with ES2016 features.
+Re-run IDE TS server after changes.
 
-**Module**
+---
 
-```json
-"module": "commonjs"
+## CI/CD Jenkins Pipeline
+
+`Jenkinsfile` shows a Docker-based pipeline using official Playwright image:
+
+1. Clean workspace safely inside ephemeral Alpine container
+2. Checkout repo
+3. Install dependencies + browsers in Playwright container
+4. Inject credentials (URL, USERNAME, PASSWORD) if configured in Jenkins
+5. Run tests with environment variables for reporter paths & Jenkins artifact URLs
+6. Publish custom HTML report via `publishHTML`
+
+Adjust: `PLAYWRIGHT_IMAGE` version, add parallel stages, archive `reports/`.
+
+### Running Locally in Docker (Example Idea)
+
+```powershell
+docker run --rm -v "$PWD":/app -w /app mcr.microsoft.com/playwright:v1.56.0-noble bash -c "npm ci && npx playwright test"
 ```
 
-Defines the module system to use in the compiled Typescript. `commonjs` is commonly used in Node.js environments.
+---
 
-**Base URL**
+## Writing & Extending Tests
 
-```json
-"baseUrl": "./"
+### Structure
+
+- Place UI specs under `src/tests/ui` and use fixtures for page object provisioning.
+- Place API specs under `src/tests/api`.
+- Create `src/tests/e2e` for cross-cutting journeys (login + multi-page flows).
+
+### Best Practices
+
+| Practice                            | Rationale                                   |
+| ----------------------------------- | ------------------------------------------- |
+| Use page object methods             | Avoid selector duplication                  |
+| Wrap logical actions in `test.step` | Better reporting & trace readability        |
+| Tag tests meaningfully              | Enables selective, faster suites over time  |
+| Keep mock data small & realistic    | Easier maintenance, fewer flaky assumptions |
+| Avoid sleeps; rely on expectations  | Deterministic & resilient                   |
+
+### Adding E2E
+
+1. Create pages for all involved UI flows
+2. Add fixture that logs in / seeds data
+3. Write scenario spec & apply `@regression` tag
+
+---
+
+## AI Agent & Playwright MCP Integration
+
+This project is enhanced with AI-driven test assistance through the Model Context Protocol (MCP) and specialized Playwright-focused agents. These agents help you plan test coverage, generate new browser tests, and heal failing tests directly from within a connected MCP client (e.g., VS Code with MCP-enabled assistant).
+
+### What Is MCP?
+The **Model Context Protocol (MCP)** is an open protocol that lets AI assistants connect to external tools ("servers") in a secure, structured way. In this project, an MCP server exposes Playwright automation tools so AI agents can:
+- Inspect pages
+- Generate locators and test code
+- Run tests and analyze failures
+- Explore application flows for planning test scenarios
+
+### Available AI Agents
+Located in `.github/chatmodes/` (planner, generator, healer). Each chatmode document describes when and how to invoke an agent.
+
+1. **Planner Agent (📭 planner.chatmode.md)**
+  - Purpose: Explore a live web app and produce structured test scenarios/test plans.
+  - Typical Use: Early-stage feature validation or expanding coverage.
+  - Capabilities: Page navigation via Playwright MCP tools, enumerating user journeys, grouping by risk & priority.
+
+2. **Generator Agent (📭 generator.chatmode.md)**
+  - Purpose: Create Playwright test code from natural language instructions.
+  - Typical Use: "Generate a test for the checkout flow" → returns a ready-to-run spec.
+  - Capabilities: DOM inspection, locator suggestions, scaffold assertions, optionally re-run test for verification.
+
+3. **Healer Agent (📭 healer.chatmode.md)**
+  - Purpose: Debug and fix failing tests by inspecting traces, logs, and page state.
+  - Typical Use: "Fix the failing login test" → agent pulls error, adjusts selectors or waits, revalidates.
+  - Capabilities: Reads failing test output, proposes patch, can regenerate selectors, suggests retries or waits only when justified.
+
+### How the Integration Works
+1. **MCP Configuration**: `.vscode/mcp.json` declares the Playwright MCP server dependency (`"@playwright/mcp@latest"`). When your MCP-enabled assistant starts, it installs/activates this server.
+2. **Tool Exposure**: The server exposes actions like opening pages, querying locators, running Playwright commands, and gathering artifacts (screenshots, traces).
+3. **Agent Logic**: Each chatmode file provides heuristics so the assistant chooses the correct agent based on your request intent.
+4. **Test Lifecycle Tie-In**: Generated or healed tests land in `src/tests/...` following the existing POM patterns.
+
+### Folder & File References
+- `.github/chatmodes/` → Agent behavior & examples.
+- `.vscode/mcp.json` → Registers MCP servers (Playwright).
+- `playwright.config.ts` → Standard Playwright setup; agents align with its projects & settings.
+- `src/pages/` & `src/tests/` → Structure agents follow when generating or updating tests.
+
+### Typical Workflows
+
+#### 1. Planning New Coverage
+Prompt: "List regression test scenarios for the dashboard at https://app.example.com/dashboard"
+Agent Flow:
+- Planner navigates to URL
+- Enumerates key modules (e.g., charts, filters, export buttons)
+- Outputs structured test plan grouped by priority & tags (`@smoke`, `@regression`)
+
+#### 2. Generating a New Test
+Prompt: "Create a Playwright test that logs in with user demo@example.com / Pass123 and verifies the avatar displays"
+Agent Flow:
+- Opens login page via MCP tool
+- Captures selectors for email, password, submit, avatar
+- Generates a spec file (e.g., `src/tests/ui/login-avatar.spec.ts`) using existing `pages/ui` abstractions if present (or scaffolds minimal inline selectors if not)
+- Optionally runs test, returns status and patch if adjustments needed
+
+#### 3. Healing a Failing Test
+Prompt: "Fix the failing test in `todo.spec.ts`"
+Agent Flow:
+- Reads failure stack & screenshot via MCP attachments
+- Replays steps, identifies selector mismatch (e.g., `#todo-input` changed to `[data-test="todo-input"]`)
+- Suggests patch (or applies if auto-fix mode allowed)
+- Re-runs test; if stable, reports fix summary
+
+### Security & Safety Considerations
+- Agents operate only on files inside the workspace (no external code injection).
+- MCP tool calls are auditable; each action is explicit.
+- Test code changes should be reviewed via version control (commit diffs) before merging.
+
+### Extending the Agent System
+You can add new specialized agents (e.g., performance profiler) by:
+1. Creating a new chatmode file under `.github/chatmodes/` (e.g., `🛠 profiler.chatmode.md`).
+2. Defining description, triggers, examples, and allowed MCP tools.
+3. (Optional) Adding custom Playwright helpers in `src/shared/utils` to standardize performance metrics.
+
+### Adding Custom MCP Servers
+If you need additional context (e.g., Jira, analytics), extend `.vscode/mcp.json` with new servers following the existing JSON schema. Each server can surface APIs the agents can leverage when generating richer reports or logging bugs.
+
+### Benefits
+- Faster test authoring from natural language.
+- Reduced flakiness via automated healing suggestions.
+- Structured planning to avoid coverage gaps.
+- Consistent adherence to project POM & naming conventions.
+
+### Troubleshooting
+| Issue | Possible Cause | Resolution |
+|-------|----------------|-----------|
+| Agent doesn't see pages | Page not publicly reachable or auth required | Provide test credentials or open tunnel; ensure login flow described |
+| Generated selector unstable | Dynamic attribute chosen | Ask agent to regenerate using data-test attributes or nth-match fallback |
+| Healer cannot patch test | Test uses outdated helper abstraction | Refactor page object; re-run healer to map stable locators |
+| MCP server not loading | Missing MCP-enabled client | Ensure you are using a tool or extension that supports `.vscode/mcp.json` |
+
+### Quick Start (Conceptual)
+1. Open an MCP-enabled chat interface in VS Code.
+2. Ask: "Plan tests for the todo feature" → Receive structured plan.
+3. Ask: "Generate tests for the highest priority scenarios" → Receive spec files.
+4. Run with `npm run test` / `npm run test:custom`.
+5. If a test fails, ask: "Heal the failing test in todo.spec.ts".
+
+> NOTE: The AI agent system augments—does not replace—manual test review. Always validate critical path tests before CI integration.
+
+## Extensibility Ideas
+
+- Add GitHub Actions workflow for cross-platform CI
+- Integrate Allure or other reporters alongside custom one
+- Add visual regression (Playwright screenshot comparisons)
+- Implement retries & flake detection dashboards
+- Introduce data factories (e.g., `@faker-js/faker`)
+- Add parallel sharding & test splitting by tag
+- Add API auth token refresh logic in a base class
+- Generate accessibility scans (axe-core) as optional tests
+- Wire Model Context Protocol (MCP) server to automate prompt usage directly from IDE
+
+---
+
+## Troubleshooting
+
+| Symptom                          | Cause                            | Fix                                                              |
+| -------------------------------- | -------------------------------- | ---------------------------------------------------------------- |
+| Imports `@utils/...` fail        | Missing tsconfig path mapping    | Extend `paths` in `tsconfig.json`                                |
+| Env vars undefined               | Wrong `NODE_ENV` or missing file | Verify `<env>.env` exists & name matches                         |
+| Custom report empty              | Reporter not loaded              | Ensure `playwright.config.ts` includes `./utils/custom-reporter` |
+| JIRA button opens malformed page | Invalid IDs/Base URL             | Set real values in `configuration.ts`                            |
+| Videos/traces missing            | Test passed (only on failure)    | Force failure or set `video: "on"` for debugging                 |
+| Husky not running                | Git hooks not installed          | Run `npm run setup` again                                        |
+
+Debug mode:
+
+```powershell
+npm run test:debug
 ```
+---
 
-Sets the base directory for module resolution. In this case, it is set to the project's root directory.
+## Security & Secrets
 
-**Paths**
+- Keep secrets out of version control—use Jenkins credentials or `.env` files excluded by `.gitignore` (add if missing).
+- Never commit real API keys.
+- For JIRA integration: store base URL & IDs as env variables or configuration constants with placeholder values.
 
-```json
-"paths": {
-    "*": ["./src/*"]
-}
-```
+---
 
-Defines module aliasing. It maps imports to the `src` directory, enabling easier imports without using relative paths.
+## License
 
-**OutDir**
+Licensed under ISC (see `LICENSE`). Adapt freely; contributions welcome.
 
-```json
-"outDir": "./dist"
-```
+---
 
-Specifies the directory where compiled Typescript files will be output, which in this case is the `dist` folder.
+## References & Helpful Links
 
-**ES Module Interop**
+- Playwright Docs: https://playwright.dev/docs/intro
+- Test Generator (Codegen): https://playwright.dev/docs/codegen-intro
+- VS Code Extension: https://playwright.dev/docs/getting-started-vscode
+- ESLint: https://eslint.org/docs/latest/
+- TypeScript: https://www.typescriptlang.org/tsconfig
 
-```json
-"esModuleInterop": true
-```
-
-Enables interoperability between CommonJS and ES Modules, allowing default imports from CommonJS modules.
-
-**Force Consistent Casing in File Names**
-
-```json
-"forceConsistentCasingInFileNames": true
-```
-
-Ensures that file names are treated case-sensitively, helping prevent issues on case-sensitive operating systems.
-
-**No Implicit Any**
-
-```json
-"noImplicitAny": true
-```
-
-Requires all variables to have explicit types, improving type safety by disallowing the use of `any` as a default type.
-
-**Strict**
-
-```json
-"strict": true
-```
-
-Enables all strict type-checking options, enhancing overall code reliability and reducing the risk of type errors.
-
-### **Include and Exclude**
-
-**Include**
-
-```json
-"include": ["src", "./eslint.config.mjs", "./playwright.config.ts"]
-```
-
-Specifies files and directories to include in the compilation process:
-
-- `src`: Includes the `src` folder, where the main project code resides.
-- `./eslint.config.mjs`: Includes the ESLint configuration file.
-- `./playwright.config.ts`: Includes the Playwright configuration file.
-
-**Exclude**
-
-```json
-"exclude": ["node_modules", "dist"]
-```
-
-Defines directories to exclude from compilation:
-
-- `node_modules`: Excludes installed dependencies to avoid recompiling them.
-- `dist`: Excludes the output directory to prevent re-compilation of already built files.
-
-
-
-### **Purpose and Use Cases**
-
-This configuration is designed for a Node.js-based TypeScript project with:
-
-- Clean and structured paths for imports.
-- Strict type checking for improved code quality.
-- Compatibility with modern Typescript features (ES2016).
-- Easy integration with tools like ESLint and Playwright.
-
-By including `eslint.config.mjs` and `playwright.config.ts`, this configuration is tailored for projects that require robust linting and testing setups alongside TypeScript compilation.
-
-For more details on TypeScript configurations, check the [TypeScript Documentation](https://www.typescriptlang.org/tsconfig)
-
-
+---

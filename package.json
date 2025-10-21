@@ -40,7 +40,7 @@
 	"homepage": "https://github.com/twinklejoshi/ai-agent-playwright-typescript-template#readme",
 	"devDependencies": {
 		"@eslint/js": "^9.24.0",
-		"@playwright/test": "^1.56.0",
+		"@playwright/test": "^1.56.1",
 		"@types/node": "^24.0.3",
 		"@typescript-eslint/eslint-plugin": "^8.29.1",
 		"@typescript-eslint/parser": "^8.29.1",
