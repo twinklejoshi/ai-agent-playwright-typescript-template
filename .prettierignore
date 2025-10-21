@@ -6,4 +6,6 @@ playwright-report
 Readme.md
 
 # IDE - VSCode
-.vs/*
+.vscode/*
+
+.github/chatmodes/*
