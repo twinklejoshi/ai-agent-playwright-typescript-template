@@ -502,6 +502,12 @@ File: `utils/custom-reporter.ts` implements Playwright Reporter interface:
 npm run test:report:playwright   # Native report
 npm run test:report:custom       # Custom report
 ```
+### Custom report screenshots
+![Custom Report](./assets/custom-report.png)
+![Custom Report with Steps expanded](./assets/custom-report-steps.png)
+
+### Jenkins Dashboard
+![Jenkins Dashboard](./assets/jenkins-dashboard.png)
 
 ### Configure Output Paths
 
