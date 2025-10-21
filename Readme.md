@@ -4,7 +4,7 @@
 
 Production-ready Playwright test automation starter for teams and startups: strict TypeScript, Page Object Model, environment management, interactive runner, custom HTML reporting (with optional JIRA integration), quality tooling, CI/CD patterns, and agentic (MCP-ready) extensibility.
 
-[Playwright Docs](https://playwright.dev/docs/intro) · [TypeScript](https://www.typescriptlang.org/) · [ESLint](https://eslint.org/) · [Prettier](https://prettier.io/) · [Husky](https://typicode.github.io/husky/)
+[Playwright Docs](https://playwright.dev/docs/intro) · [TypeScript](https://www.typescriptlang.org/) · [ESLint](https://eslint.org/) · [Prettier](https://prettier.io/) · [Husky](https://typicode.github.io/husky/) . [Research articles](https://www.researchgate.net/profile/Twinkle-Joshi-6/research)
 
 </div>
 
@@ -34,6 +34,7 @@ Production-ready Playwright test automation starter for teams and startups: stri
 20. [Troubleshooting](#troubleshooting)
 21. [Security & Secrets](#security--secrets)
 22. [License](#license)
+23. [Contributor Details](#contributor-details)
 
 ---
 
@@ -780,12 +781,10 @@ Licensed under ISC (see `LICENSE`). Adapt freely; contributions welcome.
 
 ---
 
-## References & Helpful Links
+## Contributor details
+### Twinkle Joshi
+- LinkedIn: https://www.linkedin.com/in/twinkle-j-joshi/
+- ResearchGate: https://www.researchgate.net/profile/Twinkle-Joshi-6/research
 
-- Playwright Docs: https://playwright.dev/docs/intro
-- Test Generator (Codegen): https://playwright.dev/docs/codegen-intro
-- VS Code Extension: https://playwright.dev/docs/getting-started-vscode
-- ESLint: https://eslint.org/docs/latest/
-- TypeScript: https://www.typescriptlang.org/tsconfig
 
 ---
