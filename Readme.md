@@ -637,41 +637,254 @@ docker run --rm -v "$PWD":/app -w /app mcr.microsoft.com/playwright:v1.56.0-nobl
 This project is enhanced with AI-driven test assistance through the Model Context Protocol (MCP) and specialized Playwright-focused agents. These agents help you plan test coverage, generate new browser tests, and heal failing tests directly from within a connected MCP client (e.g., VS Code with MCP-enabled assistant).
 
 ### What Is MCP?
-The **Model Context Protocol (MCP)** is an open protocol that lets AI assistants connect to external tools ("servers") in a secure, structured way. In this project, an MCP server exposes Playwright automation tools so AI agents can:
-- Inspect pages
+The **Model Context Protocol (MCP)** is an open protocol that lets AI assistants connect to external tools ("servers") in a secure, structured way. In this project, MCP servers expose Playwright automation tools so AI agents can:
+- Inspect pages and capture DOM snapshots
 - Generate locators and test code
 - Run tests and analyze failures
-- Explore application flows for planning test scenarios
+- Expose structured test intelligence (failures, summaries, plans) to healing agents
+
+### Architecture
+
+The full agentic QA loop runs as a pipeline coordinated by the Orchestrator agent:
+
+```mermaid
+flowchart TD
+    URL([Target URL]) --> ORC
+
+    subgraph ORC["Orchestrator Agent"]
+        direction TB
+        P["Phase 1: Plan\nplanner_setup_page\nplanner_save_plan"]
+        G["Phase 2: Generate\ngenerator_setup_page\ngenerator_write_test"]
+        E["Phase 3: Execute\ntest_run"]
+        H["Phase 4: Heal\ntest_debug\nbrowser_generate_locator"]
+        R["Phase 5: Report\nget_test_summary"]
+
+        P --> G --> E --> H --> R
+    end
+
+    subgraph MCP1["playwright-test MCP server\n(npx playwright run-test-mcp-server)"]
+        T1["browser_* tools"]
+        T2["planner_setup_page / planner_save_plan"]
+        T3["generator_setup_page / generator_write_test"]
+        T4["test_run / test_debug / test_list"]
+    end
+
+    subgraph MCP2["playwright-qa MCP server\n(mcp-server/index.ts — custom)"]
+        T5["get_test_failures"]
+        T6["get_test_summary"]
+        T7["read_test_plan"]
+        T8["list_generated_tests"]
+    end
+
+    ORC -->|uses| MCP1
+    ORC -->|uses| MCP2
+    E -->|writes| RESULTS["test-results/results.json"]
+    RESULTS -->|read by| T5
+    RESULTS -->|read by| T6
+    P -->|saves| PLAN["specs/*.md"]
+    PLAN -->|read by| T7
+    G -->|writes| TESTS["src/tests/ui/generated/*.spec.ts"]
+    TESTS -->|read by| T8
+    TESTS -->|listed by| CI["CI: validate:generated\n→ build.yml"]
+```
+
+#### Governance & Maintenance
+
+As this agent architecture grows, maintaining consistency is critical. **Three documents govern the system:**
+
+- **[`AGENTS.md`](AGENTS.md)** — Defines each agent's role, enforced conventions, startup sequence, and how to add new agents without creating conflicts
+- **[`CUSTOM-MCP.md`](CUSTOM-MCP.md)** — Documents each custom MCP tool, why it exists, and how to add new tools safely
+- **[`MAINTENANCE.md`](MAINTENANCE.md)** — Step-by-step workflows for common tasks: adding agents, adding tools, upgrading Playwright, troubleshooting
+
+**Start here if you're extending the system.** These docs prevent rule conflicts, tool duplication, and maintenance headaches.
 
 ### Available AI Agents
-Located in `.github/chatmodes/` (planner, generator, healer). Each chatmode document describes when and how to invoke an agent.
+Located in [.github/agents/](.github/agents/). Each agent file defines its tools, model, MCP server bindings, and workflow.
 
-1. **Planner Agent (📭 planner.chatmode.md)**
-  - Purpose: Explore a live web app and produce structured test scenarios/test plans.
-  - Typical Use: Early-stage feature validation or expanding coverage.
-  - Capabilities: Page navigation via Playwright MCP tools, enumerating user journeys, grouping by risk & priority.
+1. **Orchestrator Agent** (`playwright-test-orchestrator.agent.md`)
+   - Purpose: Runs the full Plan → Generate → Execute → Heal → Report pipeline autonomously.
+   - When to use: "Run the full QA pipeline for https://app.example.com" — end-to-end with no manual steps.
+   - Tools: Combined toolset of all three specialist agents plus the custom `playwright-qa` MCP server.
 
-2. **Generator Agent (📭 generator.chatmode.md)**
-  - Purpose: Create Playwright test code from natural language instructions.
-  - Typical Use: "Generate a test for the checkout flow" → returns a ready-to-run spec.
-  - Capabilities: DOM inspection, locator suggestions, scaffold assertions, optionally re-run test for verification.
+2. **Planner Agent** (`playwright-test-planner.agent.md`)
+   - Purpose: Explore a live web app and produce a structured test plan in `specs/`.
+   - When to use: Mapping coverage for a new feature or app before writing any tests.
+   - Output: `specs/<app-name>-test-plan.md` with numbered scenarios, steps, and expected outcomes.
 
-3. **Healer Agent (📭 healer.chatmode.md)**
-  - Purpose: Debug and fix failing tests by inspecting traces, logs, and page state.
-  - Typical Use: "Fix the failing login test" → agent pulls error, adjusts selectors or waits, revalidates.
-  - Capabilities: Reads failing test output, proposes patch, can regenerate selectors, suggests retries or waits only when justified.
+3. **Generator Agent** (`playwright-test-generator.agent.md`)
+   - Purpose: Turn a test plan scenario into a Playwright `.spec.ts` file.
+   - When to use: After a plan exists — invoke per scenario to produce `src/tests/ui/generated/` files.
+   - Output: Type-safe spec files tagged `// @generated by` with step-level comments.
+
+4. **Healer Agent** (`playwright-test-healer.agent.md`)
+   - Purpose: Debug and fix failing tests by replaying them and patching selectors or assertions.
+   - When to use: After a test run produces failures — point the agent at the broken spec.
+   - Tooling: Uses `get_test_failures` from the custom MCP server for instant structured failure context.
+
+### Which Agent Should I Use?
+
+Use this quick guide when choosing among the repo-defined agents in `.github/agents/`.
+
+| Goal | Choose this agent | Typical input |
+|---|---|---|
+| Create a new test plan from requirements or a live app | `playwright-test-planner` | App URL, requirements file, or pasted requirements |
+| Turn an existing scenario into a Playwright spec | `playwright-test-generator` | Plan file path, scenario name, output file path |
+| Debug and patch a failing test | `playwright-test-healer` | Failing spec path or failing scenario |
+| Run the full plan → generate → execute → heal flow | `playwright-test-orchestrator` | App URL plus requirements source |
+
+### Sample Prompts By Agent
+
+#### Planner Agent
+
+Use `playwright-test-planner` when coverage needs to be defined before tests are written.
+
+```text
+Create a Playwright test plan for Jira ticket PROJ-123.
+```
+
+```text
+Create a test plan for TodoMVC using requirements/todomvc-requirements.md.
+```
+
+```text
+Create a Playwright test plan for https://www.saucedemo.com/.
+Requirements:
+- Standard user can log in
+- Locked out user sees an error
+- User can add and remove items from cart
+- User can complete checkout
+Include smoke vs regression recommendations.
+```
+
+
+#### Generator Agent
+
+Use `playwright-test-generator` when a scenario already exists and you want an executable `.spec.ts` file.
+
+```text
+Generate a Playwright test from specs/todomvc-test-plan.md for scenario "Add Valid Todo".
+```
+
+```text
+Generate a Playwright test with:
+<test-suite>Adding New Todos</test-suite>
+<test-name>Add Valid Todo</test-name>
+<test-file>src/tests/ui/generated/add-valid-todo.spec.ts</test-file>
+<seed-file>src/seed.spec.ts</seed-file>
+<body>
+1. Add a single todo item
+2. Verify it appears in the list
+3. Verify the input is cleared
+</body>
+```
+
+#### Healer Agent
+
+Use `playwright-test-healer` when a spec exists but fails and you want the smallest viable repair.
+
+```text
+Heal the failing test src/tests/ui/generated/add-todo.spec.ts.
+Run it, diagnose the failure, and apply the smallest selector or timing fix.
+Do not change the assertion intent.
+```
+
+```text
+Debug and heal all failing generated Todo UI tests.
+Only make locator or timing fixes.
+If app behavior changed, mark the test fixme with a clear reason instead of rewriting expectations.
+```
+
+```text
+Debug src/tests/ui/generated/complete-todo.spec.ts.
+If the app behavior changed instead of the locator, mark the test fixme with a clear explanation.
+```
+
+#### Orchestrator Agent
+
+Use `playwright-test-orchestrator` when you want the full workflow with review checkpoints between phases.
+
+```text
+Generate tests for requirements/todomvc-requirements.md using the full QA pipeline.
+```
+
+```text
+Run the full Playwright QA pipeline for Saucedemo.
+Requirements:
+- Standard user login
+- Locked out user login failure
+- Add item to cart
+- Remove item from cart
+- Complete checkout
+```
+
+```text
+Run the full QA pipeline for https://demo.playwright.dev/todomvc/ using:
+REQ-001 User can add a todo item
+REQ-002 User can complete a todo item
+REQ-003 Active count updates correctly
+REQ-004 Filter links work
+```
+
+```text
+Run the full QA pipeline for PROJ-123.
+Use the ticket as the requirements source and stop at each checkpoint for approval.
+```
+
+### Prompt Writing Tips
+
+The most reliable prompts usually include:
+
+1. The app or feature name.
+2. The requirements source or plan file path.
+3. The exact scenario or section name when generating.
+4. The target output path when generating tests.
+5. Any limits such as "only selector fixes" or "focus on smoke scenarios".
+
+### Agent Rules vs User Prompts
+
+Agent files define the permanent rules for how each workflow should behave. User prompts should mainly define the scope of a particular run.
+
+- Put permanent behavior in agent rules: fixture usage, page object usage, `test.step()` requirements, healing limits, review checkpoints, and disallowed APIs.
+- Put run-specific intent in prompts: app URL, requirements source, plan file path, scenario name, output path, and scope limits.
+- Repeat a rule in the prompt only when you want a stricter run-specific constraint such as "only fix selectors and timing" or "focus on smoke scenarios only".
+
+If a user prompt conflicts with an agent rule, the agent rule should win. For example:
+
+- If a prompt asks the generator to use raw `page` locators, the generator should still use fixtures and page objects.
+- If a prompt asks the healer to change the assertion intent, the healer should avoid that and instead mark the test appropriately when behavior changed.
+
+In practice, the safest prompts describe the input, target scope, and desired output, while leaving stable project policy to the agent definitions.
+
+### Custom MCP Server (`mcp-server/`)
+This project ships a purpose-built MCP server that bridges Playwright test results with the agent layer.
+
+| Tool | What it does | Why not use built-in tools? |
+|---|---|---|
+| `get_test_failures` | Reads `test-results/results.json` → structured failure data: file, line, error, failed step, screenshot path | `test_run` returns raw ANSI terminal output. This gives the healer clean, targeted JSON it can act on without parsing noise |
+| `normalize_requirements` | Normalizes Jira/file/pasted requirements text into one canonical JSON contract | Built-in tools do not provide project-specific requirements parsing and normalization |
+
+**Build and start the server:**
+```bash
+npm run mcp:build   # installs deps and compiles mcp-server/
+npm run mcp:start   # runs node mcp-server/dist/index.js
+```
 
 ### How the Integration Works
-1. **MCP Configuration**: `.vscode/mcp.json` declares the Playwright MCP server dependency (`"@playwright/mcp@latest"`). When your MCP-enabled assistant starts, it installs/activates this server.
-2. **Tool Exposure**: The server exposes actions like opening pages, querying locators, running Playwright commands, and gathering artifacts (screenshots, traces).
-3. **Agent Logic**: Each chatmode file provides heuristics so the assistant chooses the correct agent based on your request intent.
-4. **Test Lifecycle Tie-In**: Generated or healed tests land in `src/tests/...` following the existing POM patterns.
+1. **MCP Configuration**: [.vscode/mcp.json](.vscode/mcp.json) registers three servers: `@playwright/mcp`, `playwright run-test-mcp-server`, and the local `playwright-qa` custom server.
+2. **Tool Exposure**: The Playwright test MCP server exposes browser automation and test lifecycle tools. The custom server exposes intelligence tools that read test artefacts.
+3. **Agent Logic**: Each `.agent.md` file in `.github/agents/` defines the agent's toolset, system prompt, and workflow. The Orchestrator chains all four phases.
+4. **Test Lifecycle Tie-In**: Generated tests land in `src/tests/ui/generated/` following POM patterns. The `validate:generated` script enforces quality standards before CI merge.
 
 ### Folder & File References
-- `.github/chatmodes/` → Agent behavior & examples.
-- `.vscode/mcp.json` → Registers MCP servers (Playwright).
-- `playwright.config.ts` → Standard Playwright setup; agents align with its projects & settings.
-- `src/pages/` & `src/tests/` → Structure agents follow when generating or updating tests.
+- [DEMO.md](DEMO.md) → **Start here for the talk.** Full demo walkthrough: architecture, live demo steps, blueprint pattern, best practices.
+- [.github/agents/](.github/agents/) → All four agent definitions.
+- [.vscode/mcp.json](.vscode/mcp.json) → Registers all three MCP servers.
+- [mcp-server/index.ts](mcp-server/index.ts) → Custom QA MCP server — `get_test_failures`, `normalize_requirements`.
+- [requirements/](requirements/) → Versioned requirement files (REQ-NNN format). Parsed and normalized by `normalize_requirements`.
+- [specs/](specs/) → Test plans produced by the Planner agent.
+- [src/tests/ui/generated/](src/tests/ui/generated/) → 5 agent-generated tests with `// req:` traceability headers.
+- [src/tests/ui/self-healing-demo.spec.ts](src/tests/ui/self-healing-demo.spec.ts) → Side-by-side brittle (`test.fixme`) vs healed tests.
+- [utils/validate-generated-tests.ts](utils/validate-generated-tests.ts) → Quality gate: 10 rules + REQ coverage check.
 
 ### Typical Workflows
 
@@ -704,13 +917,14 @@ Agent Flow:
 - Test code changes should be reviewed via version control (commit diffs) before merging.
 
 ### Extending the Agent System
-You can add new specialized agents (e.g., performance profiler) by:
-1. Creating a new chatmode file under `.github/chatmodes/` (e.g., `🛠 profiler.chatmode.md`).
-2. Defining description, triggers, examples, and allowed MCP tools.
-3. (Optional) Adding custom Playwright helpers in `src/shared/utils` to standardize performance metrics.
+You can add new specialized agents (e.g., accessibility auditor, visual regression agent) by:
+1. Creating a new agent file under `.github/agents/` (e.g., `playwright-accessibility-agent.agent.md`).
+2. Declaring the tools, model, mcp-servers, and system prompt in the frontmatter + body.
+3. Adding any new MCP tools to `mcp-server/index.ts` and rebuilding with `npm run mcp:build`.
+4. (Optional) Adding custom Playwright helpers in `src/shared/utils` to standardize metrics or assertions.
 
 ### Adding Custom MCP Servers
-If you need additional context (e.g., Jira, analytics), extend `.vscode/mcp.json` with new servers following the existing JSON schema. Each server can surface APIs the agents can leverage when generating richer reports or logging bugs.
+Extend `.vscode/mcp.json` with new server entries following the existing pattern. The `playwright-qa` server in `mcp-server/` is a working reference implementation — copy its structure to expose new tools (e.g., Jira integration, analytics, visual diff).
 
 ### Benefits
 - Faster test authoring from natural language.
@@ -735,7 +949,7 @@ If you need additional context (e.g., Jira, analytics), extend `.vscode/mcp.json
 
 > NOTE: The AI agent system augments—does not replace—manual test review. Always validate critical path tests before CI integration.
 
-## Extensibility Ideas
+---
 
 - Add GitHub Actions workflow for cross-platform CI
 - Integrate Allure or other reporters alongside custom one

@@ -1,6 +1,7 @@
-
 # Playwright
 node_modules/
+mcp-server/dist/
+mcp-server/node_modules/
 /test-results/
 /playwright/.cache/
 environments/*
@@ -8,3 +9,4 @@ environments/*
 .env
 logs/
 reports/
+.playwright-mcp

@@ -4,7 +4,7 @@
 	"description": "��#\u0000 \u0000p\u0000l\u0000a\u0000y\u0000w\u0000r\u0000i\u0000g\u0000h\u0000t\u0000-\u0000t\u0000y\u0000p\u0000e\u0000s\u0000c\u0000r\u0000i\u0000p\u0000t\u0000-\u0000t\u0000e\u0000m\u0000p\u0000l\u0000a\u0000t\u0000e\u0000\r\u0000 \u0000",
 	"main": "index.js",
 	"scripts": {
-		"setup": "npm ci && npx playwright install",
+		"setup": "npm ci && npx playwright install && npm run mcp:build",
 		"prettier": "npx prettier --check .",
 		"prettier:fix": "npx prettier --write .",
 		"eslint": "npx eslint .",
@@ -19,6 +19,10 @@
 		"test:custom": "ts-node utils/run-custom-tests.ts",
 		"test:report:playwright": "playwright show-report reports/playwright-report",
 		"test:report:custom": "open-cli reports/index.html",
+		"test:results": "npx playwright test --reporter=json 2>/dev/null | node -e \"process.stdin.pipe(require('fs').createWriteStream('test-results/results.json'))\"",
+		"validate:generated": "ts-node utils/validate-generated-tests.ts",
+		"mcp:build": "cd mcp-server && npm install && npm run build",
+		"mcp:start": "node mcp-server/dist/index.js",
 		"prepare": "husky && husky install"
 	},
 	"lint-staged": {

@@ -25,6 +25,7 @@ export default defineConfig({
 	reporter: [
 		["line"],
 		["html", { outputFolder: process.env.PLAYWRIGHT_HTML_REPORT_DIR || "reports/playwright-report", open: "never" }],
+		["json", { outputFile: "test-results/results.json" }],
 		["./utils/custom-reporter"],
 	],
 

@@ -15,6 +15,18 @@
         "playwright",
         "run-test-mcp-server"
       ]
+    },
+    "playwright-qa-context": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "mcp-server/dist/index.js"
+      ],
+      "env": {}
+    },
+    "atlassian/atlassian-mcp-server": {
+      "type": "http",
+      "url": "https://mcp.atlassian.com/v1/mcp"
     }
   },
   "inputs": []

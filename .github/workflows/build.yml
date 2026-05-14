@@ -19,3 +19,5 @@ jobs:
         run: npm run prettier
       - name: Run ESLint
         run: npm run eslint
+      - name: Validate Generated Tests
+        run: npm run validate:generated

@@ -23,13 +23,13 @@
 		"forceConsistentCasingInFileNames": true,
 		"noImplicitAny": true,
 		"strict": true,
-		"declaration": false, // No need to generate declaration files (.d.ts) for a test project
-		"downlevelIteration": true, // Enables support for iterating on objects like `Map` and `Set` in older environments
-		"experimentalDecorators": true, // Enables experimental support for ES decorators
-		"noImplicitOverride": true, // Ensures that overriding methods in a subclass are marked with the 'override' keyword
-		"noImplicitReturns": true, // Ensures that all code paths in a function explicitly return a value
-		"typeRoots": ["node_modules/@types"] // Specifies the location of type declaration files
+		"declaration": false,
+		"experimentalDecorators": true,
+		"noImplicitOverride": true,
+		"noImplicitReturns": true,
+		"typeRoots": ["node_modules/@types"],
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["**/*.ts", "playwright.config.ts"],
-	"exclude": ["node_modules", "dist"]
+	"exclude": ["node_modules", "dist", "mcp-server"]
 }
